@@ -1,3 +1,6 @@
+# “Sau khi phát hiện bất thường,
+# nhóm em tiến hành lọc các dòng có z-score vượt quá ngưỡng 3 để loại bỏ ảnh hưởng của outliers”
+# sau đó chạy phân tích tương quan : file phantich trước sosanh sau.
 import pandas as pd
 import numpy as np
 from scipy import stats

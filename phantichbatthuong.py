@@ -1,4 +1,6 @@
 # phantichbatthuong.py
+# “Nhóm em phát hiện các điểm bất thường trong dữ liệu như dân số âm hoặc thương mại quá cao. 
+# Dùng z-score và boxplot để lọc ra.”
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns

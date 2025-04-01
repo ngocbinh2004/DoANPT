@@ -1,4 +1,5 @@
 # mota.py
+# chủ đề : Phân tích dữ liệu chỉ số phát triển kinh tế thế giới Từ 1960 đến 2020.
 import pandas as pd
 import numpy as np
 
@@ -14,3 +15,6 @@ print(df.describe())
 # 25% quốc gia có dữ liệu trước mốc đó, 
 # 50% là median (trung vị), 
 # 75% là năm mà 3/4 quốc gia có dữ liệu trước đó
+
+# 📌 Mục tiêu: cho thấy dữ liệu có thật, sạch sẽ, đã mô tả rõ.
+# => tới bước 2: phantichbatthuong,outlier_filter.

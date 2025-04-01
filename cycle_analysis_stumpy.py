@@ -1,3 +1,6 @@
+# nhóm em dùng thư viện STUMPY để phát hiện chu kỳ tăng trưởng 
+# hoặc khủng hoảng GDP theo thời gian
+# xong => file mi_income_group
 import pandas as pd
 import stumpy
 import matplotlib.pyplot as plt

@@ -1,3 +1,4 @@
+# xong thì phân tích chu kỳ GDP => file cycle.
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns

@@ -86,3 +86,5 @@ model_loaded = joblib.load('rf_income_model_fixed.pkl')
 encoder_loaded = joblib.load('label_encoder_fixed.pkl')
 prediction = model_loaded.predict(sample)
 print("🌍 Nhóm thu nhập dự đoán cho mẫu mới là:", encoder_loaded.inverse_transform(prediction)[0])
+
+# Lower middle income = Thu nhập trung bình thấp.
