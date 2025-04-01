@@ -1,22 +1,21 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import stumpy
+import matplotlib.pyplot as plt
 
-# Đọc dữ liệu GDP theo năm (giả sử đã được chuẩn hóa theo dạng thời gian)
-df = pd.read_csv('WDI_GDP_timeseries.csv')
+df = pd.read_csv("WDI_GDP_timeseries.csv")
 
-# Lọc dữ liệu GDP của Việt Nam
-gdp_vietnam = df[df['Country Name'] == 'Vietnam'].iloc[:, 4:]  # bỏ cột CountryCode, Name, etc.
+# Chuyển chuỗi thời gian về dạng float64
+ts = df['Argentina'].astype('float64').values
 
-# Chuyển về mảng 1 chiều
-gdp_series = gdp_vietnam.values.flatten()
+# Tính matrix profile
+mp = stumpy.stump(ts, m=5)
 
-# Tính matrix profile (m = chiều dài chuỗi con muốn tìm)
-mp = stumpy.stump(gdp_series, m=5)
-
-# Hiển thị biểu đồ chu kỳ
+# Vẽ biểu đồ kết quả
+plt.figure(figsize=(10, 4))
 plt.plot(mp[:, 0])
-plt.title("Phân tích chu kỳ GDP Việt Nam (STUMPY)")
-plt.xlabel("Chỉ số thời gian")
-plt.ylabel("Khoảng cách")
+plt.title("Biểu đồ Matrix Profile - GDP Argentina (cửa sổ = 5)")
+plt.xlabel("Chỉ số thời gian (Time Index)")
+plt.ylabel("Giá trị Matrix Profile")
+plt.tight_layout()
 plt.show()
+

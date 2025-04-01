@@ -1,58 +1,88 @@
-
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import joblib
-import numpy as np
 
-# Đọc dữ liệu từ file CSV
-du_lieu = pd.read_csv('Country_cleaned.csv')
+# 1. Đọc dữ liệu
+df = pd.read_csv('Country_cleaned.csv')
+df = df[['Region', 'CurrencyUnit', 'SystemOfTrade', 'IncomeGroup']].dropna()
 
-# Lấy các cột cần dùng: vùng, đơn vị tiền tệ, hệ thống thương mại và nhóm thu nhập
-du_lieu_loc = du_lieu[['Region', 'CurrencyUnit', 'SystemOfTrade', 'IncomeGroup']].dropna()
+# 2. Phân phối nhãn
+plt.figure(figsize=(8, 4))
+sns.countplot(data=df, x='IncomeGroup')
+plt.title('Phân phối nhóm thu nhập')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
 
-# Mã hóa các cột đầu vào (biến phân loại thành biến số)
-X = pd.get_dummies(du_lieu_loc[['Region', 'CurrencyUnit', 'SystemOfTrade']])
-
-# Mã hóa cột nhãn (IncomeGroup) thành số
+# 3. Tiền xử lý
+X = pd.get_dummies(df[['Region', 'CurrencyUnit', 'SystemOfTrade']])
 encoder = LabelEncoder()
-y = encoder.fit_transform(du_lieu_loc['IncomeGroup'])
+y = encoder.fit_transform(df['IncomeGroup'])
 
-# Chia dữ liệu thành tập huấn luyện và kiểm tra (80% - 20%)
+# 4. Train/test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Khởi tạo và huấn luyện mô hình Random Forest
-mo_hinh = RandomForestClassifier(random_state=42)
-mo_hinh.fit(X_train, y_train)
+# 5. Huấn luyện mô hình Random Forest đơn giản hơn (giảm overfit)
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=5,
+    class_weight='balanced',
+    random_state=42
+)
+model.fit(X_train, y_train)
 
-# Dự đoán trên dữ liệu kiểm tra
-y_du_doan = mo_hinh.predict(X_test)
+# 6. Đánh giá mô hình
+y_pred = model.predict(X_test)
 
-# In ra độ chính xác và báo cáo phân loại
-print("🎯 Độ chính xác (Accuracy):", accuracy_score(y_test, y_du_doan))
+print("🎯 Độ chính xác (Accuracy):", round(accuracy_score(y_test, y_pred), 4))
 print("📊 Báo cáo phân loại:")
-print(classification_report(y_test, y_du_doan, target_names=encoder.classes_))
+print(classification_report(y_test, y_pred, target_names=encoder.classes_))
 
-# === 1. Lưu mô hình và encoder vào file ===
-joblib.dump(mo_hinh, 'random_forest_income_model.pkl')
-joblib.dump(encoder, 'label_encoder.pkl')
-print("✅ Đã lưu mô hình và encoder vào file.")
+# 7. Ma trận nhầm lẫn
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(6, 5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=encoder.classes_, yticklabels=encoder.classes_)
+plt.xlabel("Dự đoán")
+plt.ylabel("Thực tế")
+plt.title("Ma trận nhầm lẫn")
+plt.tight_layout()
+plt.show()
 
-# === 2. Tải lại mô hình và encoder từ file ===
-mo_hinh_tai_lai = joblib.load('random_forest_income_model.pkl')
-encoder_tai_lai = joblib.load('label_encoder.pkl')
+# 8. Feature importance
+importances = model.feature_importances_
+indices = np.argsort(importances)[::-1]
+features = X.columns
 
-# === 3. Dự đoán với một mẫu mới (giá trị giả định) ===
-# Tạo mẫu mới giả sử có cùng cấu trúc như X
-mau_moi = pd.DataFrame([{
+plt.figure(figsize=(10, 5))
+sns.barplot(x=importances[indices], y=features[indices])
+plt.title("Độ quan trọng của đặc trưng (Feature Importance)")
+plt.tight_layout()
+plt.show()
+
+# 9. Cross-validation
+cv_scores = cross_val_score(model, X, y, cv=5)
+print("📉 Cross-validation accuracy trung bình:", round(np.mean(cv_scores), 4))
+
+# 10. Lưu mô hình
+joblib.dump(model, 'rf_income_model_fixed.pkl')
+joblib.dump(encoder, 'label_encoder_fixed.pkl')
+
+# 11. Dự đoán mẫu mới
+sample = pd.DataFrame([{
     'Region_East Asia & Pacific': 1,
     'CurrencyUnit_U.S. dollars': 1,
     'SystemOfTrade_Special': 1
 }], columns=X.columns).fillna(0)
 
-du_doan_moi = mo_hinh_tai_lai.predict(mau_moi)
-nhom_thu_nhap = encoder_tai_lai.inverse_transform(du_doan_moi)
-
-print("🌍 Nhóm thu nhập dự đoán cho mẫu mới là:", nhom_thu_nhap[0])
+model_loaded = joblib.load('rf_income_model_fixed.pkl')
+encoder_loaded = joblib.load('label_encoder_fixed.pkl')
+prediction = model_loaded.predict(sample)
+print("🌍 Nhóm thu nhập dự đoán cho mẫu mới là:", encoder_loaded.inverse_transform(prediction)[0])
